@@ -14,9 +14,9 @@ let pointCloud;
 let particlePositions;
 let linesMesh;
 
-const maxParticleCount = 1000;
-let particleCount = 500;
-const r = 800;
+const maxParticleCount = 10;
+let particleCount = 4;
+const r = 80;
 const rHalf = r / 2;
 
 const effectController = {
@@ -27,9 +27,6 @@ const effectController = {
     maxConnections: 20,
     particleCount: 500
 };
-
-init();
-animate();
 
 function initGUI() {
 
@@ -66,12 +63,12 @@ function init() {
 
     //摄像机位置
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 4000);
-    camera.position.z = 1750;
+    camera.position.z = 500;
     console.log(camera.position);
 
     const controls = new OrbitControls(camera, container);
-    controls.minDistance = 1000;
-    controls.maxDistance = 3000;
+    controls.minDistance = 200;
+    controls.maxDistance = 1000;
 
     scene = new THREE.Scene();
 
@@ -166,6 +163,7 @@ function init() {
     window.addEventListener('resize', onWindowResize);
 
 }
+
 
 function onWindowResize() {
 
@@ -272,3 +270,6 @@ function render() {
     renderer.render(scene, camera);
 
 }
+
+init();
+animate();
