@@ -80,8 +80,7 @@ function init() {
 
     //正方形边框
     const helper = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(r, r, r)));
-    helper.material.color.setHex(0x0500E3);
-    //颜色是与背景混合的
+    helper.material.color.setHex(0xEAEAEA);
     //helper.material.blending = THREE.AdditiveBlending;
     helper.material.transparent = true;
     group.add(helper);
@@ -101,8 +100,10 @@ function init() {
     });
 
     particles = new THREE.BufferGeometry();
+    //用线性数组存储粒子的位置，根据3的倍数来分
     particlePositions = new Float32Array(maxParticleCount * 3);
 
+    //粒子位置，随机生成
     for (let i = 0; i < maxParticleCount; i++) {
 
         const x = Math.random() * r - r / 2;
@@ -113,7 +114,7 @@ function init() {
         particlePositions[i * 3 + 1] = y;
         particlePositions[i * 3 + 2] = z;
 
-        // add it to the geometry
+        //设置初始速度和numConnections
         particlesData.push({
             velocity: new THREE.Vector3(- 1 + Math.random() * 2, - 1 + Math.random() * 2, - 1 + Math.random() * 2),
             numConnections: 0
@@ -147,13 +148,13 @@ function init() {
     linesMesh = new THREE.LineSegments(geometry, material);
     group.add(linesMesh);
 
-    
+
     //
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0xFFFFFF, 1);
+    renderer.setClearColor(0x364F3D, 1);
 
     container.appendChild(renderer.domElement);
 
