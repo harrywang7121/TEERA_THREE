@@ -28,36 +28,36 @@ const effectController = {
     particleCount: 500
 };
 
-function initGUI() {
+// function initGUI() {
 
-    const gui = new GUI();
+//     const gui = new GUI();
 
-    gui.add(effectController, 'showDots').onChange(function (value) {
+//     gui.add(effectController, 'showDots').onChange(function (value) {
 
-        pointCloud.visible = value;
+//         pointCloud.visible = value;
 
-    });
-    gui.add(effectController, 'showLines').onChange(function (value) {
+//     });
+//     gui.add(effectController, 'showLines').onChange(function (value) {
 
-        linesMesh.visible = value;
+//         linesMesh.visible = value;
 
-    });
-    gui.add(effectController, 'minDistance', 10, 300);
-    gui.add(effectController, 'limitConnections');
-    gui.add(effectController, 'maxConnections', 0, 30, 1);
-    gui.add(effectController, 'particleCount', 0, maxParticleCount, 1).onChange(function (value) {
+//     });
+//     gui.add(effectController, 'minDistance', 10, 300);
+//     gui.add(effectController, 'limitConnections');
+//     gui.add(effectController, 'maxConnections', 0, 30, 1);
+//     gui.add(effectController, 'particleCount', 0, maxParticleCount, 1).onChange(function (value) {
 
-        particleCount = value;
-        particles.setDrawRange(0, particleCount);
+//         particleCount = value;
+//         particles.setDrawRange(0, particleCount);
 
-    });
+//     });
 
-}
+// }
 
 
 function init() {
 
-    initGUI();
+    // initGUI();
 
     container = document.getElementById('container');
 
@@ -75,8 +75,8 @@ function init() {
     group = new THREE.Group();
     scene.add(group);
 
-    //正方形边框
-    const helper = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(r, r, r)));
+    //正方形边框显示
+    const helper = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(r, 0.5 * r, r)));
     helper.material.color.setHex(0xEAEAEA);
     //helper.material.blending = THREE.AdditiveBlending;
     helper.material.transparent = true;
@@ -104,7 +104,7 @@ function init() {
     for (let i = 0; i < maxParticleCount; i++) {
 
         const x = Math.random() * r - r / 2;
-        const y = Math.random() * r - r / 2;
+        const y = Math.random() * 0.5 * r - 0.5 * r / 2;
         const z = Math.random() * r - r / 2;
 
         particlePositions[i * 3] = x;
@@ -193,17 +193,16 @@ function animate() {
         particlePositions[i * 3 + 1] += particleData.velocity.y;
         particlePositions[i * 3 + 2] += particleData.velocity.z;
 
-        if (particlePositions[i * 3 + 1] < - rHalf || particlePositions[i * 3 + 1] > rHalf)
-            particleData.velocity.y = - particleData.velocity.y;
-
-        if (particlePositions[i * 3] < - rHalf || particlePositions[i * 3] > rHalf)
-            particleData.velocity.x = - particleData.velocity.x;
-
-        if (particlePositions[i * 3 + 2] < - rHalf || particlePositions[i * 3 + 2] > rHalf)
-            particleData.velocity.z = - particleData.velocity.z;
-
-        if (effectController.limitConnections && particleData.numConnections >= effectController.maxConnections)
-            continue;
+        // Update boundary checks to match the box dimensions
+        if (particlePositions[i * 3] < -rHalf || particlePositions[i * 3] > rHalf) {
+            particleData.velocity.x = -particleData.velocity.x;
+        }
+        if (particlePositions[i * 3 + 1] < -0.25 * r || particlePositions[i * 3 + 1] > 0.25 * r) {
+            particleData.velocity.y = -particleData.velocity.y;
+        }
+        if (particlePositions[i * 3 + 2] < -rHalf || particlePositions[i * 3 + 2] > rHalf) {
+            particleData.velocity.z = -particleData.velocity.z;
+        }
 
         // Check collision
         for (let j = i + 1; j < particleCount; j++) {
