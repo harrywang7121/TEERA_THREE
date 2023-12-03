@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';  //性能监控
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js';  //实时调参
+// import { GUI } from 'three/addons/libs/lil-gui.module.min.js';  //实时调参
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';  //实时拖动
 
 
@@ -27,6 +27,7 @@ const effectController = {
     maxConnections: 20,
     particleCount: 500
 };
+
 
 // function initGUI() {
 
@@ -55,14 +56,35 @@ const effectController = {
 // }
 
 
+
+function createBoxMesh(R, yOffset, withEdge) {
+    let r = R;
+
+    const boxGeometry = new THREE.BoxGeometry(r, 0.5 * r, r);
+    const boxMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
+    const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+
+    boxMesh.position.y = yOffset;
+    group.add(boxMesh);
+
+    if (withEdge) {
+        const edges = new THREE.EdgesGeometry(boxGeometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xEAEAEA });
+        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+        lineSegments.position.y = yOffset;
+        group.add(lineSegments);
+    }
+}
+
+
 function init() {
 
     // initGUI();
 
     container = document.getElementById('container');
 
-    //摄像机位置
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 4000);
+    //摄像机位置及orbit控制
+    camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.z = 500;
     console.log(camera.position);
 
@@ -76,11 +98,10 @@ function init() {
     scene.add(group);
 
     //正方形边框显示
-    const helper = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(r, 0.5 * r, r)));
-    helper.material.color.setHex(0xEAEAEA);
-    //helper.material.blending = THREE.AdditiveBlending;
-    helper.material.transparent = true;
-    group.add(helper);
+    createBoxMesh(r, 0, true);
+    createBoxMesh(r, 60, true);
+    createBoxMesh(r, -60, true);
+
 
     const segments = maxParticleCount * maxParticleCount;
 
@@ -92,7 +113,7 @@ function init() {
         color: 0xFF09E6,
         size: 4,
         //blending: THREE.AdditiveBlending,
-        transparent: true,
+        transparent: false,
         sizeAttenuation: false
     });
 
@@ -140,7 +161,7 @@ function init() {
         //vertexColors: true,
         //blending: THREE.AdditiveBlending,
         color: 0xFF75F1,
-        transparent: true
+        transparent: false
     });
     linesMesh = new THREE.LineSegments(geometry, material);
     group.add(linesMesh);
