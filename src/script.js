@@ -14,7 +14,7 @@ let pointCloud;
 let particlePositions;
 let linesMesh;
 
-const maxParticleCount = 10;
+const maxParticleCount = 20;
 let particleCount = 4;
 const r = 80;
 const rHalf = r / 2;
@@ -56,28 +56,13 @@ const effectController = {
 // }
 
 
-
-function createBoxMesh(R, yOffset, withEdge) {
-    let r = R;
-
-    const boxGeometry = new THREE.BoxGeometry(r, 0.5 * r, r);
-    const boxMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
-    const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
-
-    boxMesh.position.y = yOffset;
-    group.add(boxMesh);
-
-    if (withEdge) {
-        const edges = new THREE.EdgesGeometry(boxGeometry);
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xEAEAEA });
-        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
-        lineSegments.position.y = yOffset;
-        group.add(lineSegments);
-    }
-}
-
-
 function init() {
+
+    //设置offset
+    let offset1 = -60;
+    let offset2 = -120;
+    let offset3 = -180;
+    let offset4 = -240;
 
     // initGUI();
 
@@ -98,17 +83,19 @@ function init() {
     scene.add(group);
 
     //正方形边框显示
-    createBoxMesh(r, 0, true);
-    createBoxMesh(r, 60, true);
-    createBoxMesh(r, -60, true);
-
+    createBoxMesh(r, 0, 0, true);
+    createBoxMesh(r, offset1, 0, true);
+    createBoxMesh(r, offset2, 0, true);
+    createBoxMesh(r, offset3, 0, true);
+    createBoxMesh(r, offset4, 0, true);
+    createBoxMesh(r, 0, offset2, true);
 
     const segments = maxParticleCount * maxParticleCount;
 
     positions = new Float32Array(segments * 3);
     colors = new Float32Array(segments * 3);
 
-    //粒子性质
+    //单个粒子性质
     const pMaterial = new THREE.PointsMaterial({
         color: 0xFF09E6,
         size: 4,
@@ -118,27 +105,12 @@ function init() {
     });
 
     particles = new THREE.BufferGeometry();
-    //用线性数组存储粒子的位置，根据3的倍数来分
     particlePositions = new Float32Array(maxParticleCount * 3);
 
-    //粒子位置，随机生成
-    for (let i = 0; i < maxParticleCount; i++) {
 
-        const x = Math.random() * r - r / 2;
-        const y = Math.random() * 0.5 * r - 0.5 * r / 2;
-        const z = Math.random() * r - r / 2;
-
-        particlePositions[i * 3] = x;
-        particlePositions[i * 3 + 1] = y;
-        particlePositions[i * 3 + 2] = z;
-
-        //设置初始速度和numConnections
-        particlesData.push({
-            velocity: new THREE.Vector3(- 1 + Math.random() * 2, - 1 + Math.random() * 2, - 1 + Math.random() * 2),
-            numConnections: 0
-        });
-
-    }
+    //粒子初识位置，范围内随机生成
+    initParticles(offset4, 0);
+    initParticles(offset3, 0);
 
     particles.setDrawRange(0, particleCount);
     particles.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3).setUsage(THREE.DynamicDrawUsage));
@@ -152,11 +124,8 @@ function init() {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3).setUsage(THREE.DynamicDrawUsage));
 
-    geometry.computeBoundingSphere();
 
-    geometry.setDrawRange(0, 0);
-
-    //连线性质
+    //连线材质属性
     const material = new THREE.LineBasicMaterial({
         //vertexColors: true,
         //blending: THREE.AdditiveBlending,
@@ -167,8 +136,7 @@ function init() {
     group.add(linesMesh);
 
 
-    //
-
+    //renderer设置
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -176,13 +144,57 @@ function init() {
 
     container.appendChild(renderer.domElement);
 
-    //
 
+    //性能监视
     stats = new Stats();
     container.appendChild(stats.dom);
 
     window.addEventListener('resize', onWindowResize);
 
+}
+
+
+function initParticles(yOffset, zOffset) {
+    for (let i = 0; i < maxParticleCount; i++) {
+        // Generate initial coordinates with offsets
+        const x = Math.random() * r - r / 2;
+        const y = yOffset + (Math.random() * 0.5 * r - 0.5 * r / 2);
+        const z = zOffset + (Math.random() * r - r / 2);
+
+        // Store in the array
+        particlePositions[i * 3] = x;
+        particlePositions[i * 3 + 1] = y;
+        particlePositions[i * 3 + 2] = z;
+
+        // Set initial velocity and numConnections, update particlesData
+        particlesData.push({
+            velocity: new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2),
+            numConnections: 0
+        });
+    }
+}
+
+
+
+function createBoxMesh(R, yOffset, zOffset, withEdge) {
+
+    let r = R;
+
+    const boxGeometry = new THREE.BoxGeometry(r, 0.5 * r, r);
+    const boxMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
+    const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+
+    boxMesh.position.y = yOffset;
+    group.add(boxMesh);
+
+    if (withEdge) {
+        const edges = new THREE.EdgesGeometry(boxGeometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xEAEAEA });
+        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+        lineSegments.position.y = yOffset;
+        lineSegments.position.z = zOffset;
+        group.add(lineSegments);
+    }
 }
 
 
@@ -209,7 +221,7 @@ function animate() {
 
         // get the particle
         const particleData = particlesData[i];
-
+        //分配初始速度
         particlePositions[i * 3] += particleData.velocity.x;
         particlePositions[i * 3 + 1] += particleData.velocity.y;
         particlePositions[i * 3 + 2] += particleData.velocity.z;
