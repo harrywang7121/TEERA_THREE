@@ -2,25 +2,26 @@ import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ParticleSystem 类
 class ParticleSystem {
-    constructor(maxParticleCount, yOffset, zOffset, r, scene, group) {
+    constructor(maxParticleCount, yOffset, zOffset, r, group) {
         this.maxParticleCount = maxParticleCount;
         this.particlesData = [];
         this.particlePositions = new Float32Array(maxParticleCount * 3);
         this.r = r;
         this.rHalf = r / 2;
-        this.scene = scene;
+        this.yOffset = yOffset;
+        this.zOffset = zOffset;
         this.group = group;
-        this.initParticles(yOffset, zOffset);
+        this.initParticles();
         this.createParticles();
+        this.createBoxMesh();
     }
 
-    initParticles(yOffset, zOffset) {
+    initParticles() {
         for (let i = 0; i < this.maxParticleCount; i++) {
             const x = Math.random() * this.r - this.rHalf;
-            const y = yOffset + (Math.random() * 0.5 * this.r - 0.25 * this.r);
-            const z = zOffset + (Math.random() * this.r - this.rHalf);
+            const y = this.yOffset + (Math.random() * 0.5 * this.r - 0.25 * this.r);
+            const z = this.zOffset + (Math.random() * this.r - this.rHalf);
 
             this.particlePositions[i * 3] = x;
             this.particlePositions[i * 3 + 1] = y;
@@ -49,16 +50,26 @@ class ParticleSystem {
         this.group.add(this.pointCloud);
     }
 
+    createBoxMesh() {
+        const boxGeometry = new THREE.BoxGeometry(this.r, 0.5 * this.r, this.r);
+        const edges = new THREE.EdgesGeometry(boxGeometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xEAEAEA });
+        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+        lineSegments.position.y = this.yOffset;
+        lineSegments.position.z = this.zOffset;
+        this.group.add(lineSegments);
+    }
+
     update() {
         for (let i = 0; i < this.maxParticleCount; i++) {
             const particleData = this.particlesData[i];
 
-            // 更新粒子位置
+            // Update particle position
             this.particlePositions[i * 3] += particleData.velocity.x;
             this.particlePositions[i * 3 + 1] += particleData.velocity.y;
             this.particlePositions[i * 3 + 2] += particleData.velocity.z;
 
-            // 碰撞检测和边界处理
+            // Boundary detection and handling
             if (this.particlePositions[i * 3] < -this.rHalf || this.particlePositions[i * 3] > this.rHalf) {
                 particleData.velocity.x = -particleData.velocity.x;
             }
@@ -70,25 +81,20 @@ class ParticleSystem {
             }
         }
 
-        // 更新粒子几何体的位置信息
         this.particles.attributes.position.needsUpdate = true;
     }
 }
 
-// 主程序
 let container, stats;
 let camera, scene, renderer;
 let group;
-let effectController;
 let particleSystems = [];
 
 function init() {
-    // 设置 offset
     const offsets = [-60, -120, -180, -240];
     const maxParticleCount = 20;
     const r = 80;
 
-    // 初始化摄像机、控制器、场景、组
     container = document.getElementById('container');
     camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.z = 500;
@@ -97,36 +103,29 @@ function init() {
     group = new THREE.Group();
     scene.add(group);
 
-    // 创建粒子系统
     offsets.forEach(offset => {
-        particleSystems.push(new ParticleSystem(maxParticleCount, offset, 0, r, scene, group));
+        particleSystems.push(new ParticleSystem(maxParticleCount, offset, 0, r, group));
     });
 
-    // 初始化渲染器
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x364F3D, 1);
     container.appendChild(renderer.domElement);
 
-    // 性能监视
     stats = new Stats();
     container.appendChild(stats.dom);
 
-    // 窗口尺寸调整事件
     window.addEventListener('resize', onWindowResize);
 }
 
 function animate() {
     requestAnimationFrame(animate);
 
-    // 更新每个粒子系统
-    particleSystems.forEach(system => system.update(effectController));
+    particleSystems.forEach(system => system.update());
 
-    // 渲染
     render();
 
-    // 更新性能监视器
     stats.update();
 }
 
@@ -140,6 +139,5 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// 初始化并开始动画循环
 init();
 animate();
