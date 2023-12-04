@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 class ParticleSystem {
@@ -54,12 +55,25 @@ class ParticleSystem {
     createBoxMesh() {
         const boxGeometry = new THREE.BoxGeometry(this.r, 0.5 * this.r, this.r);
         const edges = new THREE.EdgesGeometry(boxGeometry);
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xEAEAEA });
-        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+        this.boxMeshMaterial = new THREE.LineBasicMaterial({ // 修改这行代码
+            color: 0xEAEAEA,
+            transparent: true,
+            opacity: effectController.meshOpacity
+        });
+        const lineSegments = new THREE.LineSegments(edges, this.boxMeshMaterial);
         lineSegments.position.x = this.xOffset;
         lineSegments.position.y = this.yOffset;
         lineSegments.position.z = this.zOffset;
         this.group.add(lineSegments);
+    }
+
+
+    updateMeshOpacity(opacity) {
+        console.log("Updating mesh opacity to:", opacity);
+        if (this.boxMeshMaterial) {
+            this.boxMeshMaterial.opacity = opacity;
+            this.boxMeshMaterial.needsUpdate = true;
+        }
     }
 
     initLines() {
@@ -78,6 +92,18 @@ class ParticleSystem {
 
         this.linesMesh = new THREE.LineSegments(geometry, material);
         this.group.add(this.linesMesh);
+    }
+
+    updateLineOpacity(LineOpacity) {
+        if (this.linesMesh) {
+            const newMaterial = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: LineOpacity
+            });
+            this.linesMesh.material.dispose();
+            this.linesMesh.material = newMaterial;
+        }
     }
 
     update(minDistance) {
@@ -142,6 +168,7 @@ class ParticleSystem {
                 }
             }
         }
+        this.particles.attributes.position.needsUpdate = true;
 
         this.linesMesh.geometry.setDrawRange(0, numConnected * 2);
         this.linesMesh.geometry.attributes.position.needsUpdate = true;
@@ -154,10 +181,31 @@ let camera, scene, renderer;
 let group;
 let particleSystems = [];
 let effectController = {
-    minDistance: 150
+    minDistance: 150,
+    lineOpacity: 0.5,
+    meshOpacity: 0.5
 };
 
+function initGUI() {
+    const gui = new GUI();
+
+    gui.add(effectController, 'lineOpacity', 0, 1).onChange(function (value) {
+        particleSystems.forEach(system => {
+            system.updateLineOpacity(value);
+        });
+    });
+
+    gui.add(effectController, 'meshOpacity', 0, 1).onChange(function (value) {
+        particleSystems.forEach(system => {
+            system.updateMeshOpacity(value);
+        });
+    });
+}
+
 function init() {
+
+    initGUI();
+
     const maxParticleCount = 4;
     const r = 80;
     const xOffsets = [0, -100];
