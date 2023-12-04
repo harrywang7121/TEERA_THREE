@@ -175,7 +175,6 @@ function initParticles(yOffset, zOffset) {
 }
 
 
-
 function createBoxMesh(R, yOffset, zOffset, withEdge) {
 
     let r = R;
