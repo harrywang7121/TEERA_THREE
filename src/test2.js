@@ -40,7 +40,7 @@ class ParticleSystem {
     createParticles() {
         const pMaterial = new THREE.PointsMaterial({
             color: 0xFF09E6,
-            size: 3,
+            size: 2,
             transparent: false,
             sizeAttenuation: false
         });
@@ -55,7 +55,7 @@ class ParticleSystem {
     createBoxMesh() {
         const boxGeometry = new THREE.BoxGeometry(this.r, 0.5 * this.r, this.r);
         const edges = new THREE.EdgesGeometry(boxGeometry);
-        this.boxMeshMaterial = new THREE.LineBasicMaterial({ // 修改这行代码
+        this.boxMeshMaterial = new THREE.LineBasicMaterial({
             color: 0xEAEAEA,
             transparent: true,
             opacity: effectController.meshOpacity
@@ -182,8 +182,8 @@ let group;
 let particleSystems = [];
 let effectController = {
     minDistance: 150,
-    lineOpacity: 0.5,
-    meshOpacity: 0.5
+    lineOpacity: 0.3,
+    meshOpacity: 0.1
 };
 
 function initGUI() {
@@ -208,15 +208,15 @@ function init() {
 
     const maxParticleCount = 4;
     const r = 80;
-    const xOffsets = [0, -100];
-    const yOffsets = [0, -60];
-    const zOffsets = [0, -80];
+    const xOffsets = [0, -90, -180];
+    const yOffsets = [0, -50, -100, -150, -200, -250];
+    const zOffsets = [0, -90, -180];
 
     container = document.getElementById('container');
 
     //相机设置
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 9000);
-    camera.position.z = 500;
+    camera.position.z = 400;
     const controls = new OrbitControls(camera, container);
 
     scene = new THREE.Scene();
@@ -260,5 +260,20 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+
+function createBoxMesh() {
+    let r = 500;
+    const boxGeometry = new THREE.BoxGeometry(r, r, r);
+    const boxMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.5 });
+    const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+    boxMesh.position.x = 0;
+    boxMesh.position.y = 0;
+    boxMesh.position.z = 0;
+    const edges = new THREE.EdgesGeometry(boxGeometry);
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xEAEAEA });
+    const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+}
+
+createBoxMesh();
 init();
 animate();
