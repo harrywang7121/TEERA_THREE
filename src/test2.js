@@ -31,7 +31,7 @@ class ParticleSystem {
             this.particlePositions[i * 3 + 2] = z;
 
             this.particlesData.push({
-                velocity: new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2),
+                velocity: new THREE.Vector3(-0.25 + Math.random() * 0.5, -0.25 + Math.random() * 0.5, -0.25 + Math.random() * 0.5),
                 numConnections: 0
             });
         }
@@ -181,7 +181,7 @@ let camera, scene, renderer;
 let group;
 let particleSystems = [];
 let effectController = {
-    minDistance: 150,
+    minDistance: 80,
     lineOpacity: 0.3,
     meshOpacity: 0.1
 };
@@ -208,14 +208,14 @@ function init() {
 
     const maxParticleCount = 4;
     const r = 80;
-    const xOffsets = [0, -90, -180];
-    const yOffsets = [0, -50, -100, -150, -200, -250];
-    const zOffsets = [0, -90, -180];
+    const xOffsets = [800, 320, 0, -540, -720];
+    const yOffsets = [640, 240, 0, -480, -900];
+    const zOffsets = [540, 180, 0, -240, -480];
 
     container = document.getElementById('container');
 
     //相机设置
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 9000);
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100000);
     camera.position.z = 400;
     const controls = new OrbitControls(camera, container);
 
@@ -261,19 +261,5 @@ function onWindowResize() {
 }
 
 
-function createBoxMesh() {
-    let r = 500;
-    const boxGeometry = new THREE.BoxGeometry(r, r, r);
-    const boxMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.5 });
-    const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
-    boxMesh.position.x = 0;
-    boxMesh.position.y = 0;
-    boxMesh.position.z = 0;
-    const edges = new THREE.EdgesGeometry(boxGeometry);
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xEAEAEA });
-    const lineSegments = new THREE.LineSegments(edges, lineMaterial);
-}
-
-createBoxMesh();
 init();
 animate();
