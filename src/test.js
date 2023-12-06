@@ -3,6 +3,10 @@ import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+
 class ParticleSystem {
     constructor(maxParticleCount, xOffset, yOffset, zOffset, r, group) {
         this.maxParticleCount = maxParticleCount;
@@ -23,7 +27,7 @@ class ParticleSystem {
     initParticles() {
         for (let i = 0; i < this.maxParticleCount; i++) {
             const x = this.xOffset + (Math.random() * this.r - this.rHalf);
-            const y = this.yOffset + (Math.random() * 0.5 * this.r - 0.25 * this.r);
+            const y = this.yOffset + (Math.random() * this.r - this.rHalf);
             const z = this.zOffset + (Math.random() * this.r - this.rHalf);
 
             this.particlePositions[i * 3] = x;
@@ -31,7 +35,7 @@ class ParticleSystem {
             this.particlePositions[i * 3 + 2] = z;
 
             this.particlesData.push({
-                velocity: new THREE.Vector3(-0.25 + Math.random() * 0.5, -0.25 + Math.random() * 0.5, -0.25 + Math.random() * 0.5),
+                velocity: new THREE.Vector3(-0.125 + Math.random() * 0.25, -0.125 + Math.random() * 0.25, -0.125 + Math.random() * 0.25),
                 numConnections: 0
             });
         }
@@ -53,7 +57,7 @@ class ParticleSystem {
     }
 
     createBoxMesh() {
-        const boxGeometry = new THREE.BoxGeometry(this.r, 0.5 * this.r, this.r);
+        const boxGeometry = new THREE.BoxGeometry(this.r, this.r, this.r);
         const edges = new THREE.EdgesGeometry(boxGeometry);
         this.boxMeshMaterial = new THREE.LineBasicMaterial({
             color: 0xEAEAEA,
@@ -75,6 +79,7 @@ class ParticleSystem {
             this.boxMeshMaterial.needsUpdate = true;
         }
     }
+
 
     initLines() {
         const segments = this.maxParticleCount * this.maxParticleCount;
@@ -125,7 +130,7 @@ class ParticleSystem {
             if (this.particlePositions[i * 3] < this.xOffset - this.rHalf || this.particlePositions[i * 3] > this.xOffset + this.rHalf) {
                 particleData.velocity.x = -particleData.velocity.x;
             }
-            if (this.particlePositions[i * 3 + 1] < this.yOffset - 0.25 * this.r || this.particlePositions[i * 3 + 1] > this.yOffset + 0.25 * this.r) {
+            if (this.particlePositions[i * 3 + 1] < this.yOffset - this.rHalf || this.particlePositions[i * 3 + 1] > this.yOffset + this.rHalf) {
                 particleData.velocity.y = -particleData.velocity.y;
             }
             if (this.particlePositions[i * 3 + 2] < this.zOffset - this.rHalf || this.particlePositions[i * 3 + 2] > this.zOffset + this.rHalf) {
@@ -183,8 +188,12 @@ let particleSystems = [];
 let effectController = {
     minDistance: 80,
     lineOpacity: 0.3,
-    meshOpacity: 0.1
+    meshOpacity: 0.1,
+    distanceThreshold: 200
 };
+
+//储存位置生成连线
+let boxMeshPositions = [];
 
 function initGUI() {
     const gui = new GUI();
@@ -200,7 +209,15 @@ function initGUI() {
             system.updateMeshOpacity(value);
         });
     });
+
+    gui.add(effectController, 'distanceThreshold', 0, 500).onChange(function (value) {
+        checkDistanceAndCreateLine(value);
+    });
+
 }
+
+
+
 
 function init() {
 
@@ -208,14 +225,38 @@ function init() {
 
     const maxParticleCount = 4;
     const r = 80;
-    const xOffsets = [800, 320, 0, -540, -720];
-    const yOffsets = [640, 240, 0, -480, -900];
-    const zOffsets = [540, 180, 0, -240, -480];
+
+    // //老办法
+    // const xOffsets = [320, 160, 0, -120, -240];
+    // const yOffsets = [240, 140, 0, -120, -300];
+    // const zOffsets = [300, 150, 0, -240, -520];
+
+    //新办法
+    const positions = [
+        { x: -980, z: 20, maxParticleCounts: 5 },
+        { x: -540, z: 600, maxParticleCounts: 4 },
+        { x: -400, z: -600, maxParticleCounts: 2 },
+        { x: -40, z: 800, maxParticleCounts: 3 },
+        { x: 0, z: 0, maxParticleCounts: 4 },
+        { x: 520, z: -360, maxParticleCounts: 5 },
+        { x: 500, z: 800, maxParticleCounts: 2 },
+        { x: 1000, z: 100, maxParticleCounts: 3 }
+    ];
+
+    const yValues = [0, 80, 160, 240, 320, 400, 480];
+
+    const baseTexts = ["Text 1", "Text 2", "Text 3", "Text 4", "Text 5", "Text 6", "Text 7", "Text 8"];
 
     container = document.getElementById('container');
 
-    //相机设置
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100000);
+    // //OrthographicCamera
+    // const aspect = window.innerWidth / window.innerHeight;
+    // const d = 20;
+    // camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 100000);
+
+    //PerspectiveCamera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+
     camera.position.z = 400;
     const controls = new OrbitControls(camera, container);
 
@@ -223,18 +264,29 @@ function init() {
     group = new THREE.Group();
     scene.add(group);
 
-    xOffsets.forEach(xOffset => {
-        yOffsets.forEach(yOffset => {
-            zOffsets.forEach(zOffset => {
-                particleSystems.push(new ParticleSystem(maxParticleCount, xOffset, yOffset, zOffset, r, group));
-            });
+    positions.forEach((pos, index) => {
+
+        const xOffset = pos.x;
+        const zOffset = pos.z;
+        const text = baseTexts[index] || "";
+        createBase(xOffset, -60, zOffset, group, text);
+
+        yValues.forEach(y => {
+            const xOffset = pos.x;
+            const yOffset = y;
+            const zOffset = pos.z;
+            const maxParticleCount = pos.maxParticleCounts
+            particleSystems.push(new ParticleSystem(maxParticleCount, xOffset, yOffset, zOffset, r, group));
+            boxMeshPositions.push({ xOffset, yOffset, zOffset });
         });
     });
+
+    checkDistanceAndCreateLine();
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x364F3D, 1);
+    renderer.setClearColor(0x000000, 1);
     container.appendChild(renderer.domElement);
 
     stats = new Stats();
@@ -242,6 +294,91 @@ function init() {
 
     window.addEventListener('resize', onWindowResize);
 }
+
+function checkDistanceAndCreateLine() {
+    let threshold = effectController.distanceThreshold;
+
+    // 清除旧的连线
+    let toRemove = [];
+    scene.traverse((child) => {
+        if (child instanceof THREE.Line) {
+            toRemove.push(child);
+        }
+    });
+    toRemove.forEach((child) => {
+        scene.remove(child);
+    });
+
+    boxMeshPositions.forEach((positionA, i) => {
+        boxMeshPositions.forEach((positionB, j) => {
+            if (i !== j) {
+                const dx = positionA.xOffset - positionB.xOffset;
+                const dy = positionA.yOffset - positionB.yOffset;
+                const dz = positionA.zOffset - positionB.zOffset;
+                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                if (distance < threshold) {
+                    createLine(positionA, positionB);
+                }
+            }
+        });
+    });
+}
+
+
+function createLine(positionA, positionB) {
+    const material = new THREE.LineBasicMaterial({ color: 0xE30000, transparent: true, opacity: 0.6 });
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(positionA.xOffset, positionA.yOffset, positionA.zOffset),
+        new THREE.Vector3(positionB.xOffset, positionB.yOffset, positionB.zOffset)
+    ]);
+    const line = new THREE.Line(geometry, material);
+    scene.add(line);
+}
+
+const vertexShader = `
+    void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+`;
+
+const fragmentShader = `
+    uniform float time;
+    void main() {
+        vec3 color = vec3(sin(time) * 0.5 + 0.5, cos(time) * 0.5 + 0.5, 1.0);
+        gl_FragColor = vec4(color, 1.0);
+    }
+`;
+
+function createBase(x, y, z, group, text) {
+    const geometry = new THREE.BoxGeometry(140, 20, 140);
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 0 }
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+    const base = new THREE.Mesh(geometry, material);
+    base.position.set(x, y, z);
+    group.add(base);
+    const fontLoader = new FontLoader();
+    fontLoader.load('./Roboto.json', function (font) {
+        const textGeometry = new TextGeometry(text, {
+            font: font,
+            size: 60,
+            height: 2,
+        });
+
+        const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+        textMesh.position.set(x, y + 25, z);
+        textMesh.rotation.x = 0;
+        group.add(textMesh);
+    });
+}
+
 
 function animate() {
     requestAnimationFrame(animate);
@@ -257,6 +394,7 @@ function render() {
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    checkDistanceAndCreateLine();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 

@@ -1,3 +1,10 @@
+//初始script，只有一个box，面向过程
+
+
+
+
+
+
 import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';  //性能监控
 // import { GUI } from 'three/addons/libs/lil-gui.module.min.js';  //实时调参
