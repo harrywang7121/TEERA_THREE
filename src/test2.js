@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
 
 class ParticleSystem {
     constructor(maxParticleCount, xOffset, yOffset, zOffset, r, group) {
@@ -38,11 +41,15 @@ class ParticleSystem {
     }
 
     createParticles() {
+        const textureLoader = new THREE.TextureLoader();
+        const circleTexture = textureLoader.load('./circle.png'); // 替换为你的纹理图像路径
+
         const pMaterial = new THREE.PointsMaterial({
-            color: 0xFF09E6,
-            size: 2,
-            transparent: false,
-            sizeAttenuation: false
+            color: 0x0500E3,
+            size: 6,
+            transparent: true,
+            sizeAttenuation: true,
+            map: circleTexture
         });
 
         this.particles = new THREE.BufferGeometry();
@@ -212,6 +219,9 @@ function initGUI() {
 
 }
 
+
+
+
 function init() {
 
     initGUI();
@@ -238,6 +248,8 @@ function init() {
 
     const yValues = [0, 80, 160, 240, 320, 400, 480];
 
+    const baseTexts = ["Text 1", "Text 2", "Text 3", "Text 4", "Text 5", "Text 6", "Text 7", "Text 8"];
+
     container = document.getElementById('container');
 
     // //OrthographicCamera
@@ -255,7 +267,52 @@ function init() {
     group = new THREE.Group();
     scene.add(group);
 
-    positions.forEach(pos => {
+
+
+    // 创建一个平面几何体作为背景
+    const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
+
+    const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+        vUv = uv;
+        gl_Position = vec4(position, 1.0);
+    }
+`;
+
+    const fragmentShader = `
+    varying vec2 vUv;
+    void main() {
+        vec3 color1 = vec3(0.278, 0.2, 0.71); // #4733B5
+        vec3 color2 = vec3(0.914, 0.914, 0.914); // #E9E9E9
+        vec3 color3 = vec3(0.745, 0.2, 0.694); // #BE33B1
+        float mixRatio = smoothstep(0.0, 1.0, vUv.y);
+        vec3 color = mix(color1, color3, mixRatio);
+        color = mix(color, color2, smoothstep(0.25, 0.75, vUv.y));
+        gl_FragColor = vec4(color, 1.0);
+    }
+`;
+
+    const material = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader
+    });
+
+    const plane = new THREE.Mesh(planeGeometry, material);
+    plane.position.z = -1;
+    scene.add(plane);
+    plane.material.depthTest = false;
+
+
+
+
+    positions.forEach((pos, index) => {
+
+        const xOffset = pos.x;
+        const zOffset = pos.z;
+        const text = baseTexts[index] || "";
+        createBase(xOffset, -60, zOffset, group, text);
+
         yValues.forEach(y => {
             const xOffset = pos.x;
             const yOffset = y;
@@ -271,7 +328,7 @@ function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x364F3D, 1);
+    renderer.setClearColor(0x000000, 1);
     container.appendChild(renderer.domElement);
 
     stats = new Stats();
@@ -310,6 +367,7 @@ function checkDistanceAndCreateLine() {
     });
 }
 
+
 function createLine(positionA, positionB) {
     const material = new THREE.LineBasicMaterial({ color: 0xE30000, transparent: true, opacity: 0.6 });
     const geometry = new THREE.BufferGeometry().setFromPoints([
@@ -320,6 +378,50 @@ function createLine(positionA, positionB) {
     scene.add(line);
 }
 
+const vertexShader = `
+    void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+`;
+
+const fragmentShader = `
+    uniform float time;
+    void main() {
+        vec3 color = vec3(sin(time) * 0.5 + 0.5, cos(time) * 0.5 + 0.5, 1.0);
+        gl_FragColor = vec4(color, 1.0);
+    }
+`;
+
+function createBase(x, y, z, group, text) {
+    const geometry = new THREE.BoxGeometry(140, 20, 140);
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 0 }
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+    const base = new THREE.Mesh(geometry, material);
+    base.position.set(x, y, z);
+    group.add(base);
+    const fontLoader = new FontLoader();
+    fontLoader.load('./Roboto.json', function (font) {
+        const textGeometry = new TextGeometry(text, {
+            font: font,
+            size: 60,
+            height: 2,
+        });
+
+        const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+        textMesh.position.set(x, y + 25, z);
+        textMesh.rotation.x = 0;
+        group.add(textMesh);
+    });
+}
+
+
 function animate() {
     requestAnimationFrame(animate);
     particleSystems.forEach(system => system.update(effectController.minDistance));
@@ -327,9 +429,11 @@ function animate() {
     stats.update();
 }
 
+
 function render() {
     renderer.render(scene, camera);
 }
+
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;

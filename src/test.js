@@ -429,9 +429,11 @@ function animate() {
     stats.update();
 }
 
+
 function render() {
     renderer.render(scene, camera);
 }
+
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
