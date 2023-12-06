@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
@@ -42,11 +41,15 @@ class ParticleSystem {
     }
 
     createParticles() {
+        const textureLoader = new THREE.TextureLoader();
+        const circleTexture = textureLoader.load('./circle.png'); // 替换为你的纹理图像路径
+
         const pMaterial = new THREE.PointsMaterial({
-            color: 0xFF09E6,
-            size: 2,
-            transparent: false,
-            sizeAttenuation: false
+            color: 0x0500E3,
+            size: 6,
+            transparent: true,
+            sizeAttenuation: true,
+            map: circleTexture
         });
 
         this.particles = new THREE.BufferGeometry();
@@ -263,6 +266,45 @@ function init() {
     scene = new THREE.Scene();
     group = new THREE.Group();
     scene.add(group);
+
+
+
+    // 创建一个平面几何体作为背景
+    const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
+
+    const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+        vUv = uv;
+        gl_Position = vec4(position, 1.0);
+    }
+`;
+
+    const fragmentShader = `
+    varying vec2 vUv;
+    void main() {
+        vec3 color1 = vec3(0.278, 0.2, 0.71); // #4733B5
+        vec3 color2 = vec3(0.914, 0.914, 0.914); // #E9E9E9
+        vec3 color3 = vec3(0.745, 0.2, 0.694); // #BE33B1
+        float mixRatio = smoothstep(0.0, 1.0, vUv.y);
+        vec3 color = mix(color1, color3, mixRatio);
+        color = mix(color, color2, smoothstep(0.25, 0.75, vUv.y));
+        gl_FragColor = vec4(color, 1.0);
+    }
+`;
+
+    const material = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader
+    });
+
+    const plane = new THREE.Mesh(planeGeometry, material);
+    plane.position.z = -1;
+    scene.add(plane);
+    plane.material.depthTest = false;
+
+
+
 
     positions.forEach((pos, index) => {
 
