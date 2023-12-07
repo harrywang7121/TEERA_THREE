@@ -236,29 +236,29 @@ function init() {
 
     //新办法
     const positions = [
-        { x: -980, z: 20, maxParticleCounts: 5 },
-        { x: -540, z: 600, maxParticleCounts: 4 },
-        { x: -400, z: -600, maxParticleCounts: 2 },
-        { x: -40, z: 800, maxParticleCounts: 3 },
+        // { x: -980, z: 20, maxParticleCounts: 5 },
+        // { x: -540, z: 600, maxParticleCounts: 4 },
+        // { x: -400, z: -600, maxParticleCounts: 2 },
+        // { x: -40, z: 800, maxParticleCounts: 3 },
         { x: 0, z: 0, maxParticleCounts: 4 },
-        { x: 520, z: -360, maxParticleCounts: 5 },
-        { x: 500, z: 800, maxParticleCounts: 2 },
-        { x: 1000, z: 100, maxParticleCounts: 3 }
+        // { x: 520, z: -360, maxParticleCounts: 5 },
+        // { x: 500, z: 800, maxParticleCounts: 2 },
+        // { x: 1000, z: 100, maxParticleCounts: 3 }
     ];
 
     const yValues = [0, 80, 160, 240, 320, 400, 480];
 
-    const baseTexts = ["Text 1", "Text 2", "Text 3", "Text 4", "Text 5", "Text 6", "Text 7", "Text 8"];
+    const baseTexts = ["Keystroke", "Text 2", "Text 3", "Text 4", "Text 5", "Text 6", "Text 7", "Text 8"];
 
     container = document.getElementById('container');
 
-    // //OrthographicCamera
-    // const aspect = window.innerWidth / window.innerHeight;
-    // const d = 20;
-    // camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 100000);
+    //OrthographicCamera
+    const aspect = window.innerWidth / window.innerHeight;
+    const d = 20;
+    camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 100000);
 
-    //PerspectiveCamera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+    // //PerspectiveCamera
+    // camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
     camera.position.z = 400;
     const controls = new OrbitControls(camera, container);
@@ -283,9 +283,9 @@ function init() {
     const fragmentShader = `
     varying vec2 vUv;
     void main() {
-        vec3 color1 = vec3(0.278, 0.2, 0.71); // #4733B5
-        vec3 color2 = vec3(0.914, 0.914, 0.914); // #E9E9E9
-        vec3 color3 = vec3(0.745, 0.2, 0.694); // #BE33B1
+        vec3 color1 = vec3(0.78, 0.2, 0.71); // #4733B5
+        vec3 color2 = vec3(0.14, 0.14, 0.914); // #E9E9E9
+        vec3 color3 = vec3(0.745, 0.2, 0.24); // #BE33B1
         float mixRatio = smoothstep(0.0, 1.0, vUv.y);
         vec3 color = mix(color1, color3, mixRatio);
         color = mix(color, color2, smoothstep(0.25, 0.75, vUv.y));
