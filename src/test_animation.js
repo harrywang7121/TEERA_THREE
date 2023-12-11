@@ -268,14 +268,14 @@ function init() {
 
     //新办法
     const positions = [
-        { x: -980, z: 20, maxParticleCounts: 5, yCount: 8, texts: ["Verified 3 days ago", "Verified 3 days ago", "Verified 2 days ago", "Verified 2 days ago", "Verified 2 days ago", "Verified at 11:05", "Verified at 15:28", "Verified Now"] },
-        { x: -540, z: 600, maxParticleCounts: 4, yCount: 7, texts: ["Verified a week ago", "Verified 5 days ago", "Verified 4 days ago", "Verified 1 days ago", "Verified 1 days ago", "Verified 1 days ago", "Verified at 14:21",] },
-        { x: -400, z: -600, maxParticleCounts: 2, yCount: 2, texts: ["Verified a week ago", "Verified 3 days ago"] },
-        { x: -40, z: 500, maxParticleCounts: 3, yCount: 4, texts: ["Verified 5 days ago", "Verified 5 days ago", "Verified 3 days ago", "Verified 1 days ago"] },
+        // { x: -980, z: 20, maxParticleCounts: 5, yCount: 8, texts: ["Verified 3 days ago", "Verified 3 days ago", "Verified 2 days ago", "Verified 2 days ago", "Verified 2 days ago", "Verified at 11:05", "Verified at 15:28", "Verified Now"] },
+        // { x: -540, z: 600, maxParticleCounts: 4, yCount: 7, texts: ["Verified a week ago", "Verified 5 days ago", "Verified 4 days ago", "Verified 1 days ago", "Verified 1 days ago", "Verified 1 days ago", "Verified at 14:21",] },
+        // { x: -400, z: -600, maxParticleCounts: 2, yCount: 2, texts: ["Verified a week ago", "Verified 3 days ago"] },
+        // { x: -40, z: 500, maxParticleCounts: 3, yCount: 4, texts: ["Verified 5 days ago", "Verified 5 days ago", "Verified 3 days ago", "Verified 1 days ago"] },
         { x: 0, z: 0, maxParticleCounts: 4, yCount: 8, texts: ["Verified 6 days ago", "Verified 5 days ago", "Verified 2 days ago", "Verified 2 days ago", "Verified 1 days ago", "Verified 1 days ago", "Verified at 11:05", "Verified Now"] },
-        { x: 520, z: -360, maxParticleCounts: 5, yCount: 6, texts: ["Verified 6 days ago", "Verified 5 days ago", "Verified 2 days ago", "verified", "Verified 1 days ago", "Verified 1 days ago"] },
-        { x: 500, z: 800, maxParticleCounts: 2, yCount: 5, texts: ["Verified 6 days ago", "Verified 5 days ago", "Verified 2 days ago", "Verified 2 days ago", "Verified Now"] },
-        { x: 1000, z: 100, maxParticleCounts: 3, yCount: 7, texts: ["Verified 5 days ago", "Verified 5 days ago", "Verified 4 days ago", "Verified 4 days ago", "verified", "Verified at 12:10", "Verified Now"] }
+        // { x: 520, z: -360, maxParticleCounts: 5, yCount: 6, texts: ["Verified 6 days ago", "Verified 5 days ago", "Verified 2 days ago", "verified", "Verified 1 days ago", "Verified 1 days ago"] },
+        // { x: 500, z: 800, maxParticleCounts: 2, yCount: 5, texts: ["Verified 6 days ago", "Verified 5 days ago", "Verified 2 days ago", "Verified 2 days ago", "Verified Now"] },
+        // { x: 1000, z: 100, maxParticleCounts: 3, yCount: 7, texts: ["Verified 5 days ago", "Verified 5 days ago", "Verified 4 days ago", "Verified 4 days ago", "verified", "Verified at 12:10", "Verified Now"] }
     ];
 
     const yValues = [0, 80, 160, 240, 320, 400, 480];
@@ -357,8 +357,8 @@ function init() {
     renderer.setClearColor(0x000000, 1);
     container.appendChild(renderer.domElement);
 
-    stats = new Stats();
-    container.appendChild(stats.dom);
+    // stats = new Stats();
+    // container.appendChild(stats.dom);
 
     window.addEventListener('resize', onWindowResize);
 }
